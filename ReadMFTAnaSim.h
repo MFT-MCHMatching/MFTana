@@ -15,31 +15,41 @@ enum TH1HistoCodes {
   MCNrOfHits,
   MCall_Pt,
   MCinSA_Pt,
+  MCtrkbl_Pt,
+  MCfullSA_Pt,
   NHistograms
 };
 
 std::map<int, const char *> TH1Names {
   {MCNrOfHits, "MC number of hits"},
   {MCall_Pt, "Pt pf MC tracks with hits"},
-  {MCinSA_Pt, "Pt of MC tracks with clusters in SA tracks"}
+  {MCinSA_Pt, "Pt of MC tracks with clusters in SA tracks"},
+  {MCtrkbl_Pt, "Pt of MC tracks which are trackable"},
+  {MCfullSA_Pt, "Pt of MC tracks which are fully reconstructed"}
 };
 
 std::map<int, const char *> TH1Titles {
   {MCNrOfHits, "MC number of hits"},
   {MCall_Pt, "Pt pf MC tracks with hits"},
-  {MCinSA_Pt, "Pt of MC tracks with clusters in SA tracks"}
+  {MCinSA_Pt, "Pt of MC tracks with clusters in SA tracks"},
+  {MCtrkbl_Pt, "Pt of MC tracks which are trackable"},
+  {MCfullSA_Pt, "Pt of MC tracks which are fully reconstructed"}
 };
 
 std::map<int, std::array<double, 3>> TH1Binning {
   {MCNrOfHits, {50, 0., 50.}},
   {MCall_Pt, {100, 0., 5.}},
-  {MCinSA_Pt, {100, 0., 5.}}
+  {MCinSA_Pt, {100, 0., 5.}},
+  {MCtrkbl_Pt, {100, 0., 5.}},
+  {MCfullSA_Pt, {100, 0., 5.}}
 };
 
 std::map<int, const char *> TH1XaxisTitles {
   {MCNrOfHits, "Nr of hits"},
   {MCall_Pt, "pt [GeV/c]"},
-  {MCinSA_Pt, "pt [GeV/c]"}
+  {MCinSA_Pt, "pt [GeV/c]"},
+  {MCtrkbl_Pt, "pt [GeV/c]"},
+  {MCfullSA_Pt, "pt [GeV/c]"}
 };
 
 std::vector<TH1F*> TH1Histos(NHistograms);
@@ -86,7 +96,7 @@ void printSATrack(o2::mftana::MFTAnaSimSATrack* saTrack, int i) {
   
   printf("---------------------------------------------------------------\n");
   for (int iMCTrack = 0; iMCTrack < saTrack->getNMCTracks(); iMCTrack++) {
-    printf("MCTrack %d (%d) evn %d \n", saTrack->getIntMCTrackIndex(iMCTrack), saTrack->getIntMCTrackMult(iMCTrack), saTrack->getIntMCTrackEvent(iMCTrack));  
+    printf("MCTrack %d (%d) evn %d \n", saTrack->getIntMCTrackIndex(iMCTrack), saTrack->getMCTrackMult(iMCTrack), saTrack->getMCTrackEvent(iMCTrack));  
   }
   
 }
@@ -128,7 +138,7 @@ void printMCTrack(o2::mftana::MFTAnaSimTrack* mcTrack, int i) {
   
   printf("---------------------------------------------------------------\n");
   for (int iSATrack = 0; iSATrack < mcTrack->getNSATracks(); iSATrack++) {
-    printf("SATrack %d (%d) \n", mcTrack->getIntSATrackIndex(iSATrack), mcTrack->getIntSATrackMult(iSATrack));  
+    printf("SATrack %d (%d) \n", mcTrack->getIntSATrackIndex(iSATrack), mcTrack->getSATrackMult(iSATrack));  
   }
 
 }

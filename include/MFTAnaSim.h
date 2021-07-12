@@ -58,6 +58,7 @@ class MFTAnaSim
   bool initialize();   ///< Global initialization for all events
   void initEvent(int event, int particleSource = 2); ///< Event initialization; the source selection is only for the vector of particles
   bool trackHasHits(int trkID);   ///< Check if a track (by its MC ID) has hits in the detector
+  void doEvents();   ///< Looop over events and extract MC information
   bool doParticles();   ///< Extract information of all particles generated in one event, which left hits in the MFT; may select primaries and/or secondaries
   bool doHits();   ///< Mark MC tracks with hits per layer and per disk
   bool doMCTracks();   ///< Extract information of the Monte-Carlo tracks in a vector of MFTAnaSimTrack

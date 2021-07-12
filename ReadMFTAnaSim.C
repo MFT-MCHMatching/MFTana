@@ -44,12 +44,20 @@ void ReadMFTAnaSim(std::string run = "")
   // MC tracks
   int iMCTrack = 0;
   for (auto& mcTrack : anaSimTracks) {
-    //printMCTrack(&mcTrack, iMCTrack++);
+    if (verbose > 0) {
+      printMCTrack(&mcTrack, iMCTrack++);
+    }
     
     TH1Histos[MCNrOfHits]->Fill(mcTrack.getNHits());
     TH1Histos[MCall_Pt]->Fill(mcTrack.getPt());
     if (mcTrack.getNSATracks() > 0) {
       TH1Histos[MCinSA_Pt]->Fill(mcTrack.getPt());
+    }
+    if (mcTrack.isTrackable()) {
+      TH1Histos[MCtrkbl_Pt]->Fill(mcTrack.getPt());
+    }
+    if (mcTrack.isFullTrackSA()) {
+      TH1Histos[MCfullSA_Pt]->Fill(mcTrack.getPt());
     }
     
   }
@@ -57,7 +65,9 @@ void ReadMFTAnaSim(std::string run = "")
   // SA tracks
   int iSATrack = 0;
   for (auto& saTrack : anaSimSATracks) {
-    //printSATrack(&saTrack, iSATrack++);
+    if (verbose > 0) {
+      printSATrack(&saTrack, iSATrack++);
+    }
   }
   
   inFile.Close();

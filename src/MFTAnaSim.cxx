@@ -199,6 +199,25 @@ void MFTAnaSim::initEvent(int event, int particleSource)
 }
 
 //_____________________________________________________________________________
+void MFTAnaSim::doEvents()
+{
+  if (mVerboseLevel > 0) {
+    printf("Analyze %d events.\n", mNEvents);
+  }
+  for (int event = 0; event < mNEvents; event++) {
+    initEvent(event, kAll);
+    
+    doHits();
+    
+    doParticles();
+
+    doMCTracks();
+    
+    finishEvent();
+  }
+}
+
+//_____________________________________________________________________________
 bool MFTAnaSim::doParticles()
 {
   int pdgCode;
@@ -307,6 +326,9 @@ bool MFTAnaSim::doMCTracks()
     if (!filterPDGCode(pdgCode)) {
       continue;
     }
+
+    asTrack.init();
+    
     nMFTHasDisks = 0;
     for(auto disk : {0, 1, 2, 3, 4}) {
       nMFTHasDisks += (int)(mMCTrackHasHitsInDisk[trkID][disk]);
@@ -443,6 +465,7 @@ bool MFTAnaSim::doSATracks()
   
   int iTrack = 0;
   for (auto& track : mTrackVec) {
+    asSATrack.init();
     asSATrack.copy(track);
     auto trkX = track.getX();
     auto trkY = track.getY();
@@ -491,6 +514,7 @@ bool MFTAnaSim::doSATracks()
     }
     asSATrack.setNDisks(nDisks);
     asSATrack.setNLayers(nLayers);
+    asSATrack.cookTrack();
 
     mAnaSimSATracks.push_back(asSATrack);
     
@@ -614,12 +638,20 @@ void MFTAnaSim::linkTracks()
       auto& mcTrack = mAnaSimTracks.at(iMCTrack);
       for (auto iSATrack = 0; iSATrack < mAnaSimSATracks.size(); iSATrack++) {
 	auto& saTrack = mAnaSimSATracks.at(iSATrack);
+	for (int imc = 0; imc < saTrack.getNMCTracks(); imc++) {
+	  if ((saTrack.getMCTrackEvent(imc) == mcTrack.getEvent()) && (saTrack.getMCTrackIndex(imc) == mcTrack.getMCTrackID())) {
+	    mcTrack.addIntSATrackIndex(iSATrack, saTrack.getMCTrackMult(imc));
+	    saTrack.setIntMCTrackIndex(imc, iMCTrack);
+	  }
+	}
+	/*
 	for (int ip = 0; ip < saTrack.getNPoints(); ip++) {
 	  if (saTrack.getEvent(ip) == mcTrack.getEvent() && saTrack.getMCTrackID(ip) == mcTrack.getMCTrackID()) {
 	    mcTrack.addIntSATrackIndex(iSATrack);
 	    saTrack.addIntMCTrackIndex(mcTrack.getEvent(), iMCTrack);
 	  }
 	}
+	*/
       }
     }
   }
@@ -628,12 +660,20 @@ void MFTAnaSim::linkTracks()
     auto& mcTrack = mAnaSimTracks.at(iMCTrack);
     for (auto iSATrack = 0; iSATrack < mAnaSimSATracks.size(); iSATrack++) {
       auto& saTrack = mAnaSimSATracks.at(iSATrack);
+      for (int imc = 0; imc < saTrack.getNMCTracks(); imc++) {
+	if ((saTrack.getMCTrackEvent(imc) == mcTrack.getEvent()) && (saTrack.getMCTrackIndex(imc) == mcTrack.getMCTrackID())) {
+	  mcTrack.addIntSATrackIndex(iSATrack);
+	  saTrack.setIntMCTrackIndex(imc, iMCTrack);
+	}
+      }
+      /*
       for (int ip = 0; ip < saTrack.getNPoints(); ip++) {
 	if (saTrack.getEvent(ip) == mcTrack.getEvent() && saTrack.getMCTrackID(ip) == mcTrack.getMCTrackID()) {
 	  mcTrack.addIntSATrackIndex(iSATrack);
 	  saTrack.addIntMCTrackIndex(mcTrack.getEvent(), iMCTrack);
 	}
       }
+      */
     }
   }
 #endif // _OPENMP

@@ -7,6 +7,8 @@
 
 #include <sys/time.h>
 
+#include <omp.h>
+
 #endif
 
 //_____________________________________________________________________________
@@ -31,8 +33,6 @@ void MFTAna(std::string prefix = "",
   printf("%s \n", tracksFileName.data());
   printf("%s \n", geomFileName.data());
   printf("%s \n", dictFileName.data());
-
-  struct timeval tvStart, tvEnd;
 
   enum ParticleSource {kPrimary, kSecondary, kAll};
   
@@ -74,27 +74,14 @@ void MFTAna(std::string prefix = "",
   
   anaSim.setVerboseLevel(0);
 
-  // execution timing
-  gettimeofday(&tvStart, NULL);
-
   // read the input trees and dimension internal vector containers
   if (!anaSim.initialize()) {
     printf("MFTAnaSim::initialize returns false!\n");
     return;
   }
 
-  for (int event = 0; event < nrEvents ; event++) {
-    //printf("Analyze event %d.\n", event);
+  anaSim.doEvents();
     
-    anaSim.initEvent(event, kAll);
-    
-    anaSim.doHits();
-    anaSim.doParticles();
-    anaSim.doMCTracks();
-    
-    anaSim.finishEvent();
-  }
-
   // print particles summary
   if (false) {
     auto particles = anaSim.getParticles();
@@ -103,17 +90,11 @@ void MFTAna(std::string prefix = "",
       printf("%6d   %16s   %5d   %3d \n", part.mPDGCode, part.mPDGName.c_str(), part.mCount, part.mEvent);
     }
   }
-    
+
   anaSim.doSATracks();
-
   anaSim.linkTracks();
- 
   anaSim.finish();
-
-  // execution timing
-  gettimeofday(&tvEnd, NULL);
-  std::cout << "Time " << (tvEnd.tv_usec - tvStart.tv_usec) / 1000000.0 + (tvEnd.tv_sec - tvStart.tv_sec) << " [seconds]" << std::endl;
-
+  
   kineFile.Close();
   hitsFile.Close();
   clusFile.Close();

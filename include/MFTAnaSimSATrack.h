@@ -12,10 +12,12 @@ constexpr int SASplitCluster = 4;   ///< Maximum split of a cluster with the sam
 class MFTAnaSimSATrack : public o2::mft::TrackMFT
 {
  public:
-  MFTAnaSimSATrack();
+  MFTAnaSimSATrack() = default;
   ~MFTAnaSimSATrack() = default;
   MFTAnaSimSATrack& operator=(const MFTAnaSimSATrack&) = default;
 
+  void init();
+  
   void setNDisks(int nd) { mNDisks = nd; }
   int getNDisks() const { return mNDisks; }
   
@@ -62,22 +64,31 @@ class MFTAnaSimSATrack : public o2::mft::TrackMFT
   
   int getNMCTracks() const { return mNMCTracks; }
   
-  void addIntMCTrackIndex(int evn, int id);
+  void addMCTrack(int evn, int mcid);
   
-  int getIntMCTrackEvent(int i) const {
+  void setIntMCTrackIndex(int i, int index);
+  
+  int getMCTrackEvent(int i) const {
     assert(i < (SASplitCluster * o2::mft::constants::LayersNumber));
-    return mIntMCTrackEvent[i];
+    return mMCTrackEvent[i];
   }
   
+  int getMCTrackIndex(int i) const {
+    assert(i < (SASplitCluster * o2::mft::constants::LayersNumber));
+    return mMCTrackIndex[i];
+  }
+  
+  int getMCTrackMult(int i) const {
+    assert(i < (SASplitCluster * o2::mft::constants::LayersNumber));
+    return mMCTrackMult[i];
+  }
+
   int getIntMCTrackIndex(int i) const {
     assert(i < (SASplitCluster * o2::mft::constants::LayersNumber));
     return mIntMCTrackIndex[i];
   }
   
-  int getIntMCTrackMult(int i) const {
-    assert(i < (SASplitCluster * o2::mft::constants::LayersNumber));
-    return mIntMCTrackMult[i];
-  }
+  void cookTrack();
   
  private: 
   int mNDisks = 0;   ///< Number of MFT disks
@@ -87,27 +98,36 @@ class MFTAnaSimSATrack : public o2::mft::TrackMFT
   int mIntClusIndex[o2::mft::constants::LayersNumber];   ///< Internal index for the attached clusters
   int mEventID[o2::mft::constants::LayersNumber];   ///< ID of the events to which the clusters belong
   int mMCTrackID[o2::mft::constants::LayersNumber];   ///< ID of the MC tracks which contribute to the points
-  int mIntMCTrackEvent[SASplitCluster * o2::mft::constants::LayersNumber];   ///< List of the event IDs which contribute with MC tracks
-  int mIntMCTrackIndex[SASplitCluster * o2::mft::constants::LayersNumber];   ///< List of MC track indexes which contribute with clusters to this SA track
-  int mIntMCTrackMult[SASplitCluster * o2::mft::constants::LayersNumber];   ///< Multiplicity of MC track indexes which contribute with clusters to this SA track
+  
+  int mMCTrackEvent[SASplitCluster * o2::mft::constants::LayersNumber];   ///< List of the event IDs which contribute with MC tracks
+  int mMCTrackIndex[SASplitCluster * o2::mft::constants::LayersNumber];   ///< List of MC track IDs which contribute with clusters to this SA track
+  int mMCTrackMult[SASplitCluster * o2::mft::constants::LayersNumber];   ///< Multiplicity of MC track IDs which contribute with clusters to this SA track
+  int mIntMCTrackIndex[SASplitCluster * o2::mft::constants::LayersNumber];   ///< List of MC track (internal) tree indexes which contribute with clusters to this SA track
   int mNMCTracks = 0;   ///< Number of MC tracks which contribute with clusters to this SA track
 };
 
 //_____________________________________________________________________________
-inline void MFTAnaSimSATrack::addIntMCTrackIndex(int evn, int id)
+inline void MFTAnaSimSATrack::setIntMCTrackIndex(int i, int index)
+{
+  mIntMCTrackIndex[i] = index;
+}
+
+//_____________________________________________________________________________
+inline void MFTAnaSimSATrack::addMCTrack(int evn, int mcid)
 {
   int i;
   for (i = 0; i < mNMCTracks; i++) {
     assert(i < (SASplitCluster * o2::mft::constants::LayersNumber));
-    if (mIntMCTrackEvent[i] == evn && mIntMCTrackIndex[i] == id ) {
-      mIntMCTrackMult[i]++;
+    if (mMCTrackEvent[i] == evn && mMCTrackIndex[i] == mcid ) {
+      mMCTrackMult[i]++;
       return;
     }
   }
+  //printf("%d  %d  %d \n", i, evn, mcid);
   assert(i < (SASplitCluster * o2::mft::constants::LayersNumber));
-  mIntMCTrackEvent[i] = evn;
-  mIntMCTrackIndex[i] = id;
-  mIntMCTrackMult[i]++;
+  mMCTrackEvent[i] = evn;
+  mMCTrackIndex[i] = mcid;
+  mMCTrackMult[i]++;
   mNMCTracks++;
 }
 
