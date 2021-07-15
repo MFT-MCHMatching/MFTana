@@ -1,4 +1,4 @@
 {
-  gSystem->Load("libMFTAnaSim.so");
+  gSystem->Load("${ALIBUILD_WORK_DIR}/MFTAna/libMFTAnaSim");
 }
 
