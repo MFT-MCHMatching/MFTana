@@ -87,6 +87,18 @@ class MFTAnaSimSATrack : public o2::mft::TrackMFT
     assert(i < (SASplitCluster * o2::mft::constants::LayersNumber));
     return mIntMCTrackIndex[i];
   }
+
+  void setIwParam(double parx, double pary, double parz) { mIwParam[0] = parx; mIwParam[1] = pary; mIwParam[2] = parz; }
+  double* getIwParam() { return mIwParam; }
+  
+  void setOwParam(double parx, double pary, double parz) { mOwParam[0] = parx; mOwParam[1] = pary; mOwParam[2] = parz; }
+  double* getOwParam() { return mOwParam; }
+  
+  void setIwXYcov(double covx, double covy) { mIwXYcov[0] = covx; mIwXYcov[1] = covy; }
+  double* getIwXYcov() { return mIwXYcov; }
+  
+  void setOwXYcov(double covx, double covy) { mOwXYcov[0] = covx; mOwXYcov[1] = covy; }
+  double* getOwXYcov() { return mOwXYcov; }
   
   void cookTrack();
   
@@ -104,6 +116,10 @@ class MFTAnaSimSATrack : public o2::mft::TrackMFT
   int mMCTrackMult[SASplitCluster * o2::mft::constants::LayersNumber];   ///< Multiplicity of MC track IDs which contribute with clusters to this SA track
   int mIntMCTrackIndex[SASplitCluster * o2::mft::constants::LayersNumber];   ///< List of MC track (internal) tree indexes which contribute with clusters to this SA track
   int mNMCTracks = 0;   ///< Number of MC tracks which contribute with clusters to this SA track
+  double mIwParam[3];   ///< Track parameters "inward" (vertex)
+  double mOwParam[3];   ///< Track parameters "outward" (MCH)
+  double mIwXYcov[2];   ///< Track x, y covariances "inward" (vertex)
+  double mOwXYcov[2];   ///< Track x, y covariances "outward" (MCH)
 };
 
 //_____________________________________________________________________________

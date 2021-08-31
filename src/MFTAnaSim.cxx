@@ -480,6 +480,11 @@ bool MFTAnaSim::doSATracks()
     auto trkID = trkLabel.getTrackID();
     auto nPoints = track.getNumberOfPoints();
     asSATrack.setNPoints(nPoints);
+    asSATrack.setIwParam(trkX, trkY, trkZ);
+    asSATrack.setOwParam(trkOutX, trkOutY, trkOutZ);
+    auto trkOutSigmaX = TMath::Sqrt(outParam.getSigma2X());
+    auto trkOutSigmaY = TMath::Sqrt(outParam.getSigma2Y());
+    asSATrack.setOwXYcov(trkOutSigmaX, trkOutSigmaY);
     if (mVerboseLevel > 0) {
       printf("Track %3d   isCA %1d   x,y,z-in  %7.3f  %7.3f  %7.3f  x,y,z-out  %7.3f  %7.3f  %7.3f   ev %2d   label %4d   points %d \n", iTrack, track.isCA(), trkX, trkY, trkZ, trkOutX, trkOutY, trkOutZ, eventID, trkID, nPoints);
     }
@@ -527,8 +532,9 @@ bool MFTAnaSim::doSATracks()
 void MFTAnaSim::extractClusters()
 {
   auto pattIt = mClusPatternsP->cbegin();
-  o2::itsmft::ClusterPattern patt(pattIt);
   int i_cls, clusSrcID, clusTrkID, clusEvnID, nPixels;
+  float errX{0.f};
+  float errZ{0.f};
   bool fake;
   o2::math_utils::Point3D<float> locC;
   MFTAnaSimCluster asCluster;
@@ -551,18 +557,17 @@ void MFTAnaSim::extractClusters()
     asCluster.setEvent(clusEvnID);
     asCluster.setMCTrackID(clusTrkID);
     auto pattID = cluster.getPatternID();
-    nPixels = 0;   
-    if (pattID != o2::itsmft::CompCluster::InvalidPatternID) {
-      if (mTopoDict.isGroup(pattID)) {
-	locC = mTopoDict.getClusterCoordinates(cluster, patt);
-      } else {
-	locC = mTopoDict.getClusterCoordinates(cluster);
-	nPixels = mTopoDict.getNpixels(pattID);
-      }
-    } else {
+    nPixels = 0;
+    if (pattID == o2::itsmft::CompCluster::InvalidPatternID || mTopoDict.isGroup(pattID)) {
+      o2::itsmft::ClusterPattern patt(pattIt);
+      //nPixels = patt.getNPixels();
       locC = mTopoDict.getClusterCoordinates(cluster, patt, false);
+    } else {
+      locC = mTopoDict.getClusterCoordinates(cluster);
+      errX = mTopoDict.getErrX(pattID);
+      errZ = mTopoDict.getErrZ(pattID);
+      nPixels = mTopoDict.getNpixels(pattID);
     }
-    
     // Transformation to the local --> global
     auto gloC = mGeoManager->getMatrixL2G(chipID) * locC;
     asCluster.setX(gloC.X());

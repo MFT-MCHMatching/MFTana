@@ -8,6 +8,7 @@
 #include "include/MFTAnaSimSATrack.h"
 
 #include <TH1F.h>
+#include <TH2F.h>
 #include <TFile.h>
 #include <TTree.h>
 #include <TSystem.h>
@@ -18,7 +19,16 @@ enum TH1HistoCodes {
   MCinSA_Pt,
   MCtrkbl_Pt,
   MCfullSA_Pt,
-  NHistograms
+  SApullX,
+  SApullY,
+  N1Histograms
+};
+
+enum TH2HistoCodes {
+  SAXYdifIw,
+  SAXYdifOw,
+  MCXYdif,
+  N2Histograms
 };
 
 std::map<int, const char *> TH1Names {
@@ -26,7 +36,15 @@ std::map<int, const char *> TH1Names {
   {MCall_Pt, "Pt pf MC tracks with hits"},
   {MCinSA_Pt, "Pt of MC tracks with clusters in SA tracks"},
   {MCtrkbl_Pt, "Pt of MC tracks which are trackable"},
-  {MCfullSA_Pt, "Pt of MC tracks which are fully reconstructed"}
+  {MCfullSA_Pt, "Pt of MC tracks which are fully reconstructed"},
+  {SApullX, "Pull of x track points"},
+  {SApullY, "Pull of y track points"}
+};
+
+std::map<int, const char *> TH2Names {
+  {SAXYdifIw, "Inward (x,y) diffs to MC hit"},
+  {SAXYdifOw, "Outward (x,y) diffs to MC hit"},
+  {MCXYdif, "MC (x,y) cls-hit diffs"}    
 };
 
 std::map<int, const char *> TH1Titles {
@@ -34,7 +52,15 @@ std::map<int, const char *> TH1Titles {
   {MCall_Pt, "Pt pf MC tracks with hits"},
   {MCinSA_Pt, "Pt of MC tracks with clusters in SA tracks"},
   {MCtrkbl_Pt, "Pt of MC tracks which are trackable"},
-  {MCfullSA_Pt, "Pt of MC tracks which are fully reconstructed"}
+  {MCfullSA_Pt, "Pt of MC tracks which are fully reconstructed"},
+  {SApullX, "Pull of x track points"},
+  {SApullY, "Pull of y track points"}
+};
+
+std::map<int, const char *> TH2Titles {
+  {SAXYdifIw, "Inward (x,y) diffs to MC hit"},
+  {SAXYdifOw, "Outward (x,y) diffs to MC hit"},
+  {MCXYdif, "MC (x,y) cls-hit diffs"}    
 };
 
 std::map<int, std::array<double, 3>> TH1Binning {
@@ -42,7 +68,15 @@ std::map<int, std::array<double, 3>> TH1Binning {
   {MCall_Pt, {100, 0., 5.}},
   {MCinSA_Pt, {100, 0., 5.}},
   {MCtrkbl_Pt, {100, 0., 5.}},
-  {MCfullSA_Pt, {100, 0., 5.}}
+  {MCfullSA_Pt, {100, 0., 5.}},
+  {SApullX, {100, -20., +20.}},
+  {SApullY, {100, -20., +20.}}
+};
+
+std::map<int, std::array<double, 6>> TH2Binning {
+  {SAXYdifIw, {100, -1., +1., 100, -1., +1.}},
+  {SAXYdifOw, {100, -1., +1., 100, -1., +1.}},
+  {MCXYdif, {100, -0.05, +0.05, 100, -0.05, +0.05}}    
 };
 
 std::map<int, const char *> TH1XaxisTitles {
@@ -50,10 +84,25 @@ std::map<int, const char *> TH1XaxisTitles {
   {MCall_Pt, "pt [GeV/c]"},
   {MCinSA_Pt, "pt [GeV/c]"},
   {MCtrkbl_Pt, "pt [GeV/c]"},
-  {MCfullSA_Pt, "pt [GeV/c]"}
+  {MCfullSA_Pt, "pt [GeV/c]"},
+  {SApullX, "[cm]"},
+  {SApullY, "[cm]"}
 };
 
-std::vector<TH1F*> TH1Histos(NHistograms);
+std::map<int, const char *> TH2XaxisTitles {
+  {SAXYdifIw, "dx [cm]"},
+  {SAXYdifOw, "dy [cm]"},
+  {MCXYdif, "dx [cm]"}
+};
+
+std::map<int, const char *> TH2YaxisTitles {
+  {SAXYdifIw, "[cm]"},
+  {SAXYdifOw, "[cm]"},
+  {MCXYdif, "dy [cm]"}
+};
+
+std::vector<TH1F*> TH1Histos(N1Histograms);
+std::vector<TH2F*> TH2Histos(N2Histograms);
 
 std::vector<o2::mftana::MFTAnaSimTrack> anaSimTracks, *anaSimTracksP = &anaSimTracks;
 std::vector<o2::mftana::MFTAnaSimHit> anaSimHits, *anaSimHitsP = &anaSimHits;
@@ -67,6 +116,19 @@ void createHistograms() {
     h = new TH1F(TH1Names[nHisto], TH1Titles[nHisto], (int)TH1Binning[nHisto][0], TH1Binning[nHisto][1], TH1Binning[nHisto][2]);
     h->GetXaxis()->SetTitle(TH1XaxisTitles[nHisto]);
     ++nHisto;
+  }
+  
+  auto n2Histo = 0;
+  for (auto& h : TH2Histos) {
+    h = new TH2F(TH2Names[n2Histo], TH2Titles[n2Histo], (int)TH2Binning[n2Histo][0], TH2Binning[n2Histo][1], TH2Binning[n2Histo][2], (int)TH2Binning[n2Histo][3], TH2Binning[n2Histo][4], TH2Binning[n2Histo][5]);
+   h->GetXaxis()->SetTitle(TH2XaxisTitles[n2Histo]);
+   h->GetYaxis()->SetTitle(TH2YaxisTitles[n2Histo]);
+   //h->GetXaxis()->SetLabelSize(0.05);
+   //h->GetXaxis()->SetTitleSize(0.05);
+   //h->GetYaxis()->SetLabelSize(0.06);
+   //h->GetYaxis()->SetTitleSize(0.06);
+   h->SetOption("COLZ");
+   ++n2Histo;
   }
 }
 

@@ -101,7 +101,7 @@ class MFTAnaSimTrack : public MFTAnaSimMCTrack
 };
 
 //_____________________________________________________________________________
- inline void MFTAnaSimTrack::addIntSATrackIndex(int index, int mult)
+inline void MFTAnaSimTrack::addIntSATrackIndex(int index, int mult)
 {
   int i;
   for (i = 0; i < mNSATracks; i++) {

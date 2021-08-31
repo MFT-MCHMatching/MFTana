@@ -21,7 +21,8 @@ void MFTAna(std::string prefix = "",
 	    std::string geomFileName = "o2sim_geometry.root",
 	    std::string dictFileName = "MFTdictionary.bin")
 {
-  gSystem->Load("${ALIBUILD_WORK_DIR}/MFTAna/libMFTAnaSim");
+  //gSystem->Load("${ALIBUILD_WORK_DIR}/MFTAna/libMFTAnaSim");
+  gSystem->Load("./libMFTAnaSim");
   
   hitsFileName = prefix + hitsFileName;
   kineFileName = prefix + kineFileName;
